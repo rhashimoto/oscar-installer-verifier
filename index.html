@@ -72,8 +72,7 @@
 	<br>
 	Verifying the installer you downloaded ensures that you are getting an exact copy of the file from the server.
 	There are various reasons why something may go wrong with your download.  Third party downloaders, download accelerators, 
-	internet issues, computer issues, etc.  If the checksums match then you have an exact copy.  If they do not match 
-	then try downloading again and re-check the file.
+	internet issues, computer issues, etc.  If verification fails then try downloading again and re-check the file.
 <!--	This is an Alpha test version for:<br> -->
 <!--    This is a Beta test version for:<br> -->
 <!--    This is a Release Candidate for:<br> -->
@@ -108,56 +107,63 @@
   <table class="leftDiv">
     <tr>
      <td>
-  	<p><strong>Verify the installer you downloaded to the official version.</strong></p>
-  	<p>Click the Browse button below and select the installer you downloaded to your computer.
-  	You can then compare that to the official SHA256 checksums listed on the download page using a text editor.
+  	<p><strong>Verify the installer you downloaded is the official version.</strong></p>
+  	<p>Click the button below and select the installer you downloaded to your computer.
+    The result will be displayed below.
   	See <a href="https://www.apneaboard.com/wiki/index.php?title=Jeff8356:Sandbox2"
            title="Verify checksums" target="_blank">THIS</a> wiki page for more details and alternate ways of checking.</p>  
 
-<label
-  >Choose file to check <input type="file" id="file" name="file" multiple
-/></label>
+<label>
+  Choose file to check <input id="testfile" type="file" id="file" name="file">
+</label>
 <output style="display:block;font-family:monospace;"></output>
-<br>
-  <script>
-  const output = document.querySelector("output");
-const file = document.getElementById("file");
+<script>
+  // Fetch JSON object mapping hex digests to file names.
+  const checksumsReady = fetch('./checksums.json').then(async function (response) {
+    const json = await response.json();
+    return new Map(Object.entries(json));
+  });
 
-// Run the hashing function when the user selects one or more file
-file.addEventListener("change", hashTheseFiles);
+  document.getElementById('testfile').addEventListener('change', async (e) => {
+    // Compute the SHA256 hash of the file.
+    const file = e.target.files[0];
+    const digest = await fileHash(file);
 
-// The digest function is asynchronous, it returns a promise
-// We use the async/await syntax to simplify the code.
-async function fileHash(file) {
-  const arrayBuffer = await file.arrayBuffer();
+    // Look up the hash in the checksums.json file.
+    const checksums = await checksumsReady;
+    const output = document.querySelector("output");
+    if (checksums.has(digest)) {
+      output.textContent = `The file ${file.name} is a valid copy of ${checksums.get(digest)}.`;
+    } else {
+      output.innerHTML = `The file ${file.name} is not recognized as a valid installer.
+        Please try downloading it again from
+        <a href="https://www.sleepfiles.com/OSCAR/">the official download site</a>.
+      `;
+    }
+  });
 
-  // Use the subtle crypto API to perform a SHA256 Sum of the file's
-  // Array Buffer. The resulting hash is stored in an array buffer
-  const hashAsArrayBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+  // The digest function is asynchronous, it returns a promise
+  // We use the async/await syntax to simplify the code.
+  async function fileHash(file) {
+    const arrayBuffer = await file.arrayBuffer();
 
-  // To display it as a string we will get the hexadecimal value of
-  // each byte of the array buffer. This gets us an array where each byte
-  // of the array buffer becomes one item in the array
-  const uint8ViewOfHash = new Uint8Array(hashAsArrayBuffer);
-  // We then convert it to a regular array so we can convert each item
-  // to hexadecimal strings, where characters of 0-9 or a-f represent
-  // a number between 0 and 15, containing 4 bits of information,
-  // so 2 of them is 8 bits (1 byte).
-  const hashAsString = Array.from(uint8ViewOfHash)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return hashAsString;
-}
+    // Use the subtle crypto API to perform a SHA256 Sum of the file's
+    // Array Buffer. The resulting hash is stored in an array buffer
+    const hashAsArrayBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
 
-async function hashTheseFiles(e) {
-  let outHTML = "";
-  // iterate over each file in file select input
-  for (const file of this.files) {
-    // calculate its hash and list it in the output element.
-    outHTML += `${await fileHash(file)}&nbsp;&nbsp;${file.name}<br>`;
+    // To display it as a string we will get the hexadecimal value of
+    // each byte of the array buffer. This gets us an array where each byte
+    // of the array buffer becomes one item in the array
+    const uint8ViewOfHash = new Uint8Array(hashAsArrayBuffer);
+    // We then convert it to a regular array so we can convert each item
+    // to hexadecimal strings, where characters of 0-9 or a-f represent
+    // a number between 0 and 15, containing 4 bits of information,
+    // so 2 of them is 8 bits (1 byte).
+    const hashAsString = Array.from(uint8ViewOfHash)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    return hashAsString;
   }
-  output.innerHTML = outHTML;
-}
 </script>
   </td>
   </tr>
