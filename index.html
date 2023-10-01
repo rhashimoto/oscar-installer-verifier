@@ -119,31 +119,28 @@
 <output style="display:block;font-family:monospace;"></output>
 <script>
   // Fetch JSON object mapping hex digests to file names.
-  const checksumsReady = fetch('./checksums.json').then(async function (response) {
+  const checksumsReady = fetch('./checksums.json').then(async function(response) {
     const json = await response.json();
     return new Map(Object.entries(json));
   });
 
-  document.getElementById('testfile').addEventListener('change', async (e) => {
+  document.getElementById('testfile').addEventListener('change', async function(e) {
     // Compute the SHA256 hash of the file.
     const file = e.target.files[0];
     const digest = await fileHash(file);
 
     // Look up the hash in the checksums.json file.
     const checksums = await checksumsReady;
-    const output = document.querySelector("output");
-    if (checksums.has(digest)) {
-      output.innerHTML = `The file ${file.name} is a valid copy of ${checksums.get(digest)}.`;
-    } else {
-      output.innerHTML = `The file ${file.name} is not recognized as a valid installer.
+    document.querySelector("output").innerHTML = checksums.has(digest) ?
+      `The file ${file.name} is a valid copy of ${checksums.get(digest)}.` :
+      `The file ${file.name} is not recognized as a valid installer.
         It may be damaged or corrupted. Please try downloading it again from the
         <a href="https://www.sleepfiles.com/OSCAR/">official download site</a>.
       `;
-    }
   });
 
-  // The digest function is asynchronous, it returns a promise
-  // We use the async/await syntax to simplify the code.
+  // Compute the SHA256 hash of a file.
+  // https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API/Non-cryptographic_uses_of_subtle_crypto
   async function fileHash(file) {
     const arrayBuffer = await file.arrayBuffer();
 
