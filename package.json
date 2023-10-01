@@ -1,0 +1,10 @@
+{
+  "name": "oscar-installer-verifier",
+  "scripts": {
+    "start": "web-dev-server --node-resolve"
+  },
+  "packageManager": "yarn@3.6.3",
+  "devDependencies": {
+    "@web/dev-server": "^0.3.2"
+  }
+}
