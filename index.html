@@ -133,7 +133,7 @@
     const checksums = await checksumsReady;
     const output = document.querySelector("output");
     if (checksums.has(digest)) {
-      output.textContent = `The file ${file.name} is a valid copy of ${checksums.get(digest)}.`;
+      output.innerHTML = `The file ${file.name} is a valid copy of ${checksums.get(digest)}.`;
     } else {
       output.innerHTML = `The file ${file.name} is not recognized as a valid installer.
         It may be damaged or corrupted. Please try downloading it again from the
