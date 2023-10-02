@@ -124,6 +124,7 @@
     const regexp = /^([0-9A-Fa-f]{64})\s+(.*)/;
     const text = await response.text();
     const parsed = text.split('\n')
+      .filter(line => line.length > 0)
       .map((line, index) => {
         const m = line.match(regexp);
         if (!m) throw new Error(`Invalid checksums.txt file at line ${index + 1}`);
