@@ -120,16 +120,15 @@
 <script>
   // Fetch JSON object mapping hex digests to file names.
   const checksumsReady = fetch('./checksums.txt').then(async function(response) {
+    // Match lines that look like "hexdigest filename".
+    const regexp = /^([0-9A-Fa-f]{64})\s+(.*)/;
     const text = await response.text();
     const parsed = text.split('\n')
-      // Test for lines that look like "hexdigest filename".
-      .map(line => {
-        const m = line.match(/^([0-9A-Fa-f]{64})\s+(.*)/);
-        if (!m) throw new Error('Invalid checksums.txt file');
-        return m;
-      })
-      // Convert to tuples.
-      .map(m => [m[1], m[2]])
+      .map((line, index) => {
+        const m = line.match(regexp);
+        if (!m) throw new Error(`Invalid checksums.txt file at line ${index + 1}`);
+        return m.slice(1);
+      });
     return new Map(parsed);
   });
 
