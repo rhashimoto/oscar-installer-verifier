@@ -125,29 +125,31 @@
       // Test for lines that look like "hexdigest filename".
       .map(line => {
         const m = line.match(/^([0-9A-Fa-f]{64})\s+(.*)/);
-        if (!m) console.warn(`Ignoring line: "${line}"`);
+        if (!m) throw new Error('Invalid checksums.txt file');
         return m;
       })
-      // Ignore lines that don't match.
-      .filter(m => m)
       // Convert to tuples.
       .map(m => [m[1], m[2]])
     return new Map(parsed);
   });
 
-  document.getElementById('testfile').addEventListener('change', async function(e) {
-    // Compute the SHA256 hash of the file.
-    const file = e.target.files[0];
-    const digest = await fileHash(file);
+  document.getElementById('testfile').addEventListener('change', async function(event) {
+    try {
+      // Compute the SHA256 hash of the file.
+      const file = event.target.files[0];
+      const digest = await fileHash(file);
 
-    // Look up the hash in the checksums.json file.
-    const checksums = await checksumsReady;
-    document.querySelector("output").innerHTML = checksums.has(digest) ?
-      `The file ${file.name} is a valid copy of ${checksums.get(digest)}.` :
-      `The file ${file.name} is not recognized as a valid installer.
-        It may be damaged or corrupted. Please try downloading it again from the
-        <a href="https://www.sleepfiles.com/OSCAR/">official download site</a>.
-      `;
+      // Look up the hash in the checksums.json file.
+      const checksums = await checksumsReady;
+      document.querySelector("output").innerHTML = checksums.has(digest) ?
+        `The file ${file.name} is a valid copy of ${checksums.get(digest)}.` :
+        `The file ${file.name} is not recognized as a valid installer.
+          It may be damaged or corrupted. Please try downloading it again from the
+          <a href="https://www.sleepfiles.com/OSCAR/">official download site</a>.
+        `;
+    } catch (e) {
+      alert(`Error: ${e.message}`);
+    }
   });
 
   // Compute the SHA256 hash of a file.
