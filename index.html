@@ -118,7 +118,7 @@
 </label>
 <output style="display:block;font-family:monospace;"></output>
 <script>
-  // Fetch JSON object mapping hex digests to file names.
+  // Fetch checksum file mapping hex digests to file names.
   const checksumsReady = fetch('./checksums.txt').then(async function(response) {
     // Match lines that look like "hexdigest filename".
     const regexp = /^([0-9A-Fa-f]{64})\s+(.*)/;
